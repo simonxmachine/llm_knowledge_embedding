@@ -8,6 +8,11 @@ from langchain.chat_models import ChatOpenAI
 from langchain.chains import LLMChain
 from dotenv import load_dotenv
 
+from flask import Flask, request, jsonify
+
+app = Flask(__name__)
+
+
 load_dotenv()
 
 # 1. Vectorize the sales response csv data
@@ -82,6 +87,7 @@ chain = LLMChain(llm=llm, prompt=prompt)
 
 # 4. Retrieval augmented generation
 
+@app.route('/ask', methods=["POST"])
 def generate_response(message):
     best_practice = retrieve_info(message)
     response = chain.run(message=message, best_practice=best_practice)
@@ -97,20 +103,21 @@ def generate_response(message):
 # 5. Build an app with streamlit
 
 
-def main():
-    st.set_page_config(
-        page_title="Customer response generator", page_icon=":bird:")
+# def main():
+    # st.set_page_config(
+    #     page_title="Customer response generator", page_icon=":bird:")
 
-    st.header("Customer response generator :bird:")
-    message = st.text_area("customer message")
+    # st.header("Customer response generator :bird:")
+    # message = st.text_area("customer message")
 
-    if message:
-        st.write("Generating best practice message...")
+    # if message:
+    #     st.write("Generating best practice message...")
 
-        result = generate_response(message)
+    #     result = generate_response(message)
 
-        st.info(result)
+    #     st.info(result)
+
 
 
 if __name__ == '__main__':
-    main()
+    app.run(port=8000, debug=True)
