@@ -9,8 +9,11 @@ from langchain.chains import LLMChain
 from dotenv import load_dotenv
 
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
+valid_password = "abcde111222333"
 
 
 load_dotenv()
@@ -35,7 +38,7 @@ embedded_knowledge = FAISS.from_documents(documents, embeddings)
 # 2. Do similarity search
 
 def retrieve_info(query):
-    similar_response = embedded_knowledge.similarity_search(query, k=2)
+    similar_response = embedded_knowledge.similarity_search(query, k=3)
     page_contents_array = [doc.page_content for doc in similar_response]
 
     return page_contents_array
@@ -52,28 +55,27 @@ def retrieve_info(query):
 #Temperature controls the randomness or creativity of the LLM's responses.
 #A value of 0 means the model will generate responses that are highly deterministic 
 #and consistent with the training data, potentially sacrificing some creativity.
-llm = ChatOpenAI(temperature=0, model="gpt-3.5-turbo-16k-0613")
+llm = ChatOpenAI(temperature=1, model="gpt-3.5-turbo-16k-0613")
 
 
 #Defines the prompt template that will be used to generate prompts for the LLM.
 template = """
-You are a world class business development representative. 
-I will share a prospect's message with you and you will give me the best answer that 
-I should send to this prospect based on past best practices, 
-and you will follow ALL of the rules below:
+You are a top producing real estate agent servicing the New York area. 
+I will share a potential buyer's message with you and you will give me the best answer to
+send to the buyer based on past best practices, and you will follow ALL of the rules below:
 
 1/ Response should be very similar or even identical to the past best practices, 
 in terms of length, tone of voice, logical arguments and other details
 
-2/ If the best practice is irrelevant, then try to mimic the style of the best practice to prospect's message
+2/ If the best practice is irrelevant, then try to mimic the style of the best practice to the buyer's message
 
-Below is a message I received from the prospect:
+Below is a message I received from the buyer:
 {message}
 
-Here is a list of best practices of how we normally respond to prospect in similar scenarios:
+Here is a list of best practices of how we normally respond to our buyers in similar scenarios:
 {best_practice}
 
-Please write the best response that I should send to this prospect:
+Please write the best casual response I should send to this buyer:
 """
 
 
@@ -87,11 +89,24 @@ chain = LLMChain(llm=llm, prompt=prompt)
 
 # 4. Retrieval augmented generation
 
+@app.route('/')
+def say_hello():
+    return "Hello, World!"
+
+
 @app.route('/ask', methods=["POST"])
-def generate_response(message):
-    best_practice = retrieve_info(message)
-    response = chain.run(message=message, best_practice=best_practice)
-    return response
+def generate_response():
+    
+    password=request.headers.get("password")
+    
+    if password != valid_password:
+        return "Invalid password", 401
+    else: 
+        data = request.get_json()
+        message = data["message"]
+        best_practice = retrieve_info(message)
+        response = chain.run(message=message, best_practice=best_practice)
+        return response
 
 
 # message = """What school district is this property and are there any tax breaks?"""
@@ -120,4 +135,4 @@ def generate_response(message):
 
 
 if __name__ == '__main__':
-    app.run(port=8000, debug=True)
+    app.run(host='0.0.0.0', port=8000, debug=True)

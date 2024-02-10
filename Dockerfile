@@ -2,9 +2,9 @@ FROM python:3.10-slim-bullseye
  
 ENV HOST=0.0.0.0
  
-ENV LISTEN_PORT 8080
+ENV LISTEN_PORT 8000
 
-EXPOSE 8080
+EXPOSE 8000
  
 RUN apt-get update && apt-get install -y git
  
@@ -16,4 +16,4 @@ WORKDIR /app
  
 COPY . /app
  
-CMD ["streamlit", "run", "app.py", "--server.port", "8080"]
+CMD ["gunicorn", "-b", "0.0.0.0:8000" ,"app:app"]
