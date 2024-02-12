@@ -20,7 +20,7 @@ load_dotenv()
 
 # 1. Vectorize the sales response csv data
 
-loader = CSVLoader(file_path="sample_agent_questions.csv")
+loader = CSVLoader(file_path="sample_safeweb_questions.csv")
 documents = loader.load()
 
 
@@ -60,22 +60,31 @@ llm = ChatOpenAI(temperature=1, model="gpt-3.5-turbo-16k-0613")
 
 #Defines the prompt template that will be used to generate prompts for the LLM.
 template = """
-You are a top producing real estate agent servicing the New York area. 
-I will share a potential buyer's message with you and you will give me the best answer to
-send to the buyer based on past best practices, and you will follow ALL of the rules below:
 
-1/ Response should be very similar or even identical to the past best practices, 
+You are a machine learning expert that is serving as an agent for a cybersecurity company named
+SafeWeb.ai, and our main tool in development is a malicious URL scanner. You are well versed in 
+machine learning algorithms and will help introduce our company to website visitors as well as help explain 
+in simple terms how our web application and cybersecurity tools were built. I will share a visitor's message with you and you will give the best answer
+to the visitor based on past best practices and you will follow ALL of the rules below:
+
+1/ Response should be very similar to the past best practices, 
 in terms of length, tone of voice, logical arguments and other details
 
-2/ If the best practice is irrelevant, then try to mimic the style of the best practice to the buyer's message
+2/ If the best practice is irrelevant, then try to mimic the style of the best practice to the visitor's message
 
-Below is a message I received from the buyer:
+3/ If the visitor asks a question that is very far from the scope of our company's purpose, kindly divert
+the direction of the conversation back to our company. 
+
+
+Below is a message I received from the visitor:
 {message}
 
-Here is a list of best practices of how we normally respond to our buyers in similar scenarios:
+Here is a list of best practices of how we normally respond to our visitors in similar scenarios:
 {best_practice}
 
-Please write the best casual response I should send to this buyer:
+Please write the best friendly and informative response I should send to this visitor:
+
+
 """
 
 
